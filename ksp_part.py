@@ -5,9 +5,10 @@ import threading
 
 
 def guide_vessel_to_maneuver(conn, vessel):
-    vessel.control.activate_next_stage()
-    vessel.control.throttle = 1.0
     vessel.control.sas = True
+    vessel.control.throttle = 1.0
+    sleep(0.25)
+    vessel.control.activate_next_stage()
     sleep(1.5)
     pitch = conn.get_call(getattr, vessel.flight(), 'pitch')
     vessel.control.activate_next_stage()
@@ -89,7 +90,7 @@ def guide_vessel_to_maneuver(conn, vessel):
     time_to_node = conn.get_call(getattr, vessel.control.nodes[0], 'time_to')
     expr = conn.krpc.Expression.less_than(
         conn.krpc.Expression.call(time_to_node),
-        conn.krpc.Expression.constant_double(182))
+        conn.krpc.Expression.constant_double(153.5))
     event = conn.krpc.add_event(expr)
     with event.condition:
         event.wait()
@@ -111,7 +112,7 @@ def guide_vessel_to_maneuver(conn, vessel):
 
 
 def get_statistics(conn, vessel):
-    data = []
+    data = {}
     sleep(1)
     start_time = conn.space_center.ut
     reached_jool = False
@@ -119,34 +120,46 @@ def get_statistics(conn, vessel):
     last_mass = vessel.dry_mass
     srf_frame = vessel.orbit.body.reference_frame
     sun_frame = conn.space_center.bodies['Sun'].non_rotating_reference_frame
+    left_kerbin_orbit = False
 
     while conn:
         time_from_launch = conn.space_center.ut - start_time
-        if last_mass - vessel.dry_mass > 10:
+        if last_mass - vessel.dry_mass > 10 and stage < 3:
             last_mass = vessel.dry_mass
             stage += 1
+        if vessel.orbit.body.name == 'Sun' and not left_kerbin_orbit:
+            stage += 1
+            left_kerbin_orbit = True
         if vessel.orbit.body.name == 'Jool':
+            srf_frame = vessel.orbit.body.orbital_reference_frame
+            stage += 1
             reached_jool = True
         if reached_jool and vessel.orbit.body.name == 'Sun':
+            stage += 1
             conn = False
 
         if stage in [0, 1, 2, 3]:
-            print(time_from_launch, vessel.flight(srf_frame).speed, vessel.flight().pitch, stage,
-                  vessel.orbit.body.name)
-            data.append([time_from_launch, vessel.flight(srf_frame).speed, vessel.flight().pitch, stage,
-                         vessel.orbit.body.name])
-            sleep(0.5)
-        else:
-            print(time_from_launch, vessel.flight(sun_frame).speed, stage, vessel.orbit.body.name)
-            data.append([time_from_launch, vessel.flight(sun_frame).speed, stage, vessel.orbit.body.name])
-            sleep(0.5)
+            if vessel.control.throttle == 1:
+                data[stage] = data.get(stage, {})
+                data[stage][time_from_launch] = vessel.flight(srf_frame).speed
+                print(stage, time_from_launch, vessel.flight(srf_frame).speed)
+        elif stage == 4 and 4 not in data.keys():
+            data[stage] = vessel.flight(sun_frame).speed
+            print(stage, vessel.flight(sun_frame).speed)
+        elif stage == 5 and 5 not in data.keys():
+            data[stage] = vessel.flight(srf_frame).speed
+            print(stage, vessel.flight(srf_frame).speed)
+        elif stage == 6 and 6 not in data.keys():
+            data[stage] = vessel.flight(sun_frame).speed
+            print(stage, vessel.flight(srf_frame).speed)
+        sleep(0.5)
 
     with open('flight_data.json', 'w') as f:
         dump(data, f)
 
 
 def main():
-    conn = krpc.connect(name='Voyger-1')
+    conn = krpc.connect(name='Voyager-1')
     vessel = conn.space_center.active_vessel
     t1 = threading.Thread(target=guide_vessel_to_maneuver, args=(conn, vessel), daemon=True)
     t2 = threading.Thread(target=get_statistics, args=(conn, vessel), daemon=True)
