@@ -108,9 +108,17 @@ def get_statistics(conn, vessel):
     srf_frame = vessel.orbit.body.reference_frame
     sun_frame = conn.space_center.bodies['Sun'].non_rotating_reference_frame
     left_kerbin_orbit = False
+    activated_3rd_stage = False
 
     while conn:
-        time_from_launch = conn.space_center.ut - start_time
+        if stage < 3:
+            time_from_launch = conn.space_center.ut - start_time
+        elif stage == 3 and not activated_3rd_stage and vessel.control.throttle == 1:
+            activated_3rd_stage = True
+            sleep_time = conn.space_center.ut - time_from_launch
+        if stage == 3 and activated_3rd_stage:
+            time_from_launch = conn.space_center.ut - start_time - sleep_time
+
         if last_mass - vessel.dry_mass > 10 and stage < 3:
             last_mass = vessel.dry_mass
             stage += 1
