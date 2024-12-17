@@ -87,28 +87,15 @@ def guide_vessel_to_maneuver(conn, vessel):
     vessel.control.sas_mode = vessel.control.sas_mode.prograde
 
     vessel.control.add_node(ut=94576455.18315232, prograde=1919.6012901481956, normal=364.49585151672363, radial=-102.89438092231738)
-    time_to_node = conn.get_call(getattr, vessel.control.nodes[0], 'time_to')
-    expr = conn.krpc.Expression.less_than(
-        conn.krpc.Expression.call(time_to_node),
-        conn.krpc.Expression.constant_double(153.5))
-    event = conn.krpc.add_event(expr)
-    with event.condition:
-        event.wait()
-    vessel.control.sas_mode = vessel.control.sas_mode.maneuver
-    sleep(0.5)
-    vessel.control.throttle = 1
 
     remaining_delta = conn.get_call(getattr, vessel.control.nodes[0], 'remaining_delta_v')
     expr = conn.krpc.Expression.less_than(
         conn.krpc.Expression.call(remaining_delta),
-        conn.krpc.Expression.constant_double(10))
+        conn.krpc.Expression.constant_double(1))
     event = conn.krpc.add_event(expr)
     with event.condition:
         event.wait()
     vessel.control.throttle = 0
-    sleep(0.5)
-    vessel.control.activate_next_stage()
-    vessel.control.nodes[0].remove()
 
 
 def get_statistics(conn, vessel):
@@ -131,7 +118,7 @@ def get_statistics(conn, vessel):
             stage += 1
             left_kerbin_orbit = True
         if vessel.orbit.body.name == 'Jool':
-            srf_frame = vessel.orbit.body.orbital_reference_frame
+            #srf_frame = vessel.orbit.body.orbital_reference_frame
             stage += 1
             reached_jool = True
         if reached_jool and vessel.orbit.body.name == 'Sun':
@@ -147,11 +134,11 @@ def get_statistics(conn, vessel):
             data[stage] = vessel.flight(sun_frame).speed
             print(stage, vessel.flight(sun_frame).speed)
         elif stage == 5 and 5 not in data.keys():
-            data[stage] = vessel.flight(srf_frame).speed
-            print(stage, vessel.flight(srf_frame).speed)
+            data[stage] = vessel.flight(sun_frame).speed
+            print(stage, vessel.flight(sun_frame).speed)
         elif stage == 6 and 6 not in data.keys():
             data[stage] = vessel.flight(sun_frame).speed
-            print(stage, vessel.flight(srf_frame).speed)
+            print(stage, vessel.flight(sun_frame).speed)
         sleep(0.5)
 
     with open('flight_data.json', 'w') as f:
