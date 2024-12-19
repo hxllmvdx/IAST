@@ -127,7 +127,7 @@ def get_speeds_from_stage_0_to_stage_3(dt):
         speeds.append(data['speed'])
         acceleration.append(sqrt(ax_0 ** 2 + ay_0 ** 2 + az_0 ** 2))
         dist = sqrt((x_0 - 6378000)**2 + y_0**2 + z_0**2)
-        distance.append(dist)
+        distance.append(dist / 1000)
 
     for t in count(115 + dt, dt):
         if t > 262:
@@ -142,8 +142,8 @@ def get_speeds_from_stage_0_to_stage_3(dt):
         times.append(round(t, 1))
         speeds.append(data['speed'])
         acceleration.append(sqrt(ax_0 ** 2 + ay_0 ** 2 + az_0 ** 2))
-        dist = sqrt((x_0 - 6378000) ** 2 + y_0 ** 2 + z_0 ** 2)
-        distance.append(dist)
+        dist = sqrt((x_0 - 6378000) **2 + y_0 ** 2 + z_0 ** 2)
+        distance.append(dist / 1000)
 
     for t in count(262 + dt, dt):
         if t > 467:
@@ -158,8 +158,8 @@ def get_speeds_from_stage_0_to_stage_3(dt):
         times.append(round(t, 1))
         speeds.append(data['speed'])
         acceleration.append(sqrt(ax_0 ** 2 + ay_0 ** 2 + az_0 ** 2))
-        dist = sqrt((x_0 - 6378000) ** 2 + y_0 ** 2 + z_0 ** 2)
-        distance.append(dist)
+        dist = sqrt((x_0 - 6378000)**2 + y_0**2 + z_0**2)
+        distance.append(dist / 1000)
 
     for t in count(467 + dt, dt):
         if t > 911:
@@ -174,8 +174,8 @@ def get_speeds_from_stage_0_to_stage_3(dt):
         times.append(round(t, 1))
         speeds.append(data['speed'])
         acceleration.append(sqrt(ax_0 ** 2 + ay_0 ** 2 + az_0 ** 2))
-        dist = sqrt((x_0 - 6378000) ** 2 + y_0 ** 2 + z_0** 2)
-        distance.append(dist)
+        dist = sqrt((x_0 - 6378000)**2 + y_0 ** 2 + z_0**2)
+        distance.append(dist / 1000)
 
     return times, speeds, acceleration, distance
 
