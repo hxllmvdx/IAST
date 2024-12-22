@@ -1,31 +1,32 @@
+import json
 from math import sqrt, sin, cos
 from itertools import count
 
 
 def get_curr_mass(t):
-    if 0 <= t <= 115:
-        return 389052 - 1673.348 * t
-    elif 115 < t <= 262:
-        return 162819 - 756.0544 * (t - 115)
-    elif 262 < t <= 467:
-        return 46246 - 129.439 * (t - 262)
-    elif 467 < t <= 911:
-        return 16258 - 30.691 * (t - 467)
+    if 0 <= t <= 80:
+        return 182400 - 1632.5 * t
+    elif 80 < t <= 136:
+        return 30600 - 132.142 * (t - 80)
+    elif 136 < t <= 185:
+        return 17300 - 36 * (t - 136)
+    elif 185 < t <= 451:
+        return 8586 - 14.184 * (t - 185)
 
 
 def calc_ax(x, y, z, vx, vy, vz, m, k):
-    return (-2 * m * vz * 0.879 + k * vx / sqrt(vx**2 + vy**2 + vz**2) - 6.67 * 10**(-11) * (m * 5.97 * 10**24 * x) /
+    return (-2 * m * vz * cos(1) + k * vx / sqrt(vx**2 + vy**2 + vz**2) - 6.67 * 10**(-11) * (m * 5.291 * 10**22 * x) /
           sqrt(x**2 + y**2 + z**2)**3 - 0.001 * vx) / m
 
 
 def calc_ay(x, y, z, vx, vy, vz, m, k):
-    return (2 * m * vz * 7.29 * 10 ** -5 * sin(28.5) + k * vy / sqrt(vx**2 + vy**2 + vz**2) - 6.67 * 10**(-11) *
-          (m * 5.97 * 10 ** 24 * y) / sqrt(x ** 2 + y ** 2 + z ** 2)**3 - 0.001 * vy) / m
+    return (2 * m * vz * 2.91 * 10**-4 * sin(1) + k * vy / sqrt(vx**2 + vy**2 + vz**2) - 6.67 * 10**(-11) *
+          (m * 5.291 * 10 ** 22 * y) / sqrt(x ** 2 + y ** 2 + z ** 2)**3 - 0.001 * vy) / m
 
 
 def calc_az(x, y, z, vx, vy, vz, m, k):
-    return (2 * m * 7.29 * 10**-5 * vx * 0.879 - 2 * m * vy * 7.29**-5 * 0.477 + k * vz / sqrt(vx**2 + vy**2 + vz**2) -
-            6.67 * 10**(-11) * (m * 5.97 * 10**24 * z) / sqrt(x**2 + y**2 + z**2)**3 - 0.001 * vz) / m
+    return (2 * m * 2.91 * 10**-4 * vx * cos(1) - 2 * m * vy * 2.91 * 10**-4 * sin(1) + k * vz / sqrt(vx**2 + vy**2 + vz**2) -
+            6.67 * 10**(-11) * (m * 5.291 * 10 ** 22 * z) / sqrt(x**2 + y**2 + z**2)**3 - 0.001 * vz) / m
 
 def runge_kutta(x_0, y_0, z_0, vx_0, vy_0, vz_0, ax_0, ay_0, az_0, m, k, dt):
     data = {}
@@ -96,7 +97,7 @@ def get_speeds_from_stage_0_to_stage_3(dt):
     distance = [0]
     acceleration = []
 
-    x_0 = 6378000
+    x_0 = 600000
     y_0 = 0
     z_0 = 0
     vx_0 = 0
@@ -104,21 +105,21 @@ def get_speeds_from_stage_0_to_stage_3(dt):
     vz_0 = 0
     m = get_curr_mass(0)
 
-    ax_0 = (-2 * m * vz_0 * 0.879 + 5849411 - 6.67 * 10**(-11) * (m * 5.97 * 10**24 * x_0) / sqrt(x_0**2 + y_0**2 + z_0**2)**3 -
+    ax_0 = (-2 * m * vz_0 * cos(1) + 3800000 - 6.67 * 10**(-11) * (m * 5.291 * 10 ** 22 * x_0) / sqrt(x_0**2 + y_0**2 + z_0**2)**3 -
             0.001 * vx_0) / m
-    ay_0 = (2 * m * vz_0 * 7.29 * 10**-5 * sin(28.5) - 6.67 * 10**(-11) * (m * 5.97 * 10**24 * y_0) /
+    ay_0 = (2 * m * vz_0 * 2.91 * 10**-4 * sin(1) - 6.67 * 10**(-11) * (m * 5.291 * 10 ** 22 * y_0) /
             sqrt(x_0**2 + y_0**2 + z_0**2)**3 - 0.001 * vy_0) / m
-    az_0 = (2 * m * 7.29 * 10**-5 * vx_0 * 0.879 - 2 * m * vy_0 * 7.29**-5 * 0.477 - 6.67 * 10**(-11) * (m * 5.97 * 10**24 * z_0)
+    az_0 = (2 * m * 2.91 * 10**-4 * vx_0 * cos(1) - 2 * m * vy_0 * 2.91 * 10**-4 * sin(1) - 6.67 * 10**(-11) * (m * 5.291 * 10 ** 22 * z_0)
             / sqrt(x_0**2 + y_0**2 + z_0**2)**3 - 0.001 * vz_0) / m
 
     acceleration.append(sqrt(ax_0**2 + ay_0**2 + az_0**2))
 
     for t in count(dt, dt):
-        if t > 115:
+        if t > 80:
             break
 
         m = get_curr_mass(round(t, 1))
-        data = runge_kutta(x_0, y_0, z_0, vx_0, vy_0, vz_0, ax_0, ay_0, az_0, m, 5849411, dt)
+        data = runge_kutta(x_0, y_0, z_0, vx_0, vy_0, vz_0, ax_0, ay_0, az_0, m, 3800000, dt)
         x_0, y_0, z_0 = data['x_0'], data['y_0'], data['z_0']
         vx_0, vy_0, vz_0 = data['vx_0'], data['vy_0'], data['vz_0']
         ax_0, ay_0, az_0 = data['ax_0'], data['ay_0'], data['az_0']
@@ -126,15 +127,15 @@ def get_speeds_from_stage_0_to_stage_3(dt):
         times.append(round(t, 1))
         speeds.append(data['speed'])
         acceleration.append(sqrt(ax_0 ** 2 + ay_0 ** 2 + az_0 ** 2))
-        dist = sqrt((x_0 - 6378000)**2 + y_0**2 + z_0**2)
-        distance.append(dist / 1000)
+        dist = sqrt((x_0 - 600000)**2 + y_0**2 + z_0**2)
+        distance.append(dist)
 
-    for t in count(115 + dt, dt):
-        if t > 262:
+    for t in count(80 + dt, dt):
+        if t > 136:
             break
 
         m = get_curr_mass(round(t, 1))
-        data = runge_kutta(x_0, y_0, z_0, vx_0, vy_0, vz_0, ax_0, ay_0, az_0, m, 2339760, dt)
+        data = runge_kutta(x_0, y_0, z_0, vx_0, vy_0, vz_0, ax_0, ay_0, az_0, m, 400000, dt)
         x_0, y_0, z_0 = data['x_0'], data['y_0'], data['z_0']
         vx_0, vy_0, vz_0 = data['vx_0'], data['vy_0'], data['vz_0']
         ax_0, ay_0, az_0 = data['ax_0'], data['ay_0'], data['az_0']
@@ -142,15 +143,15 @@ def get_speeds_from_stage_0_to_stage_3(dt):
         times.append(round(t, 1))
         speeds.append(data['speed'])
         acceleration.append(sqrt(ax_0 ** 2 + ay_0 ** 2 + az_0 ** 2))
-        dist = sqrt((x_0 - 6378000) **2 + y_0 ** 2 + z_0 ** 2)
-        distance.append(dist / 1000)
+        dist = sqrt((x_0 - 600000) **2 + y_0 ** 2 + z_0 ** 2)
+        distance.append(dist)
 
-    for t in count(262 + dt, dt):
-        if t > 467:
+    for t in count(136 + dt, dt):
+        if t > 185:
             break
 
         m = get_curr_mass(round(t, 1))
-        data = runge_kutta(x_0, y_0, z_0, vx_0, vy_0, vz_0, ax_0, ay_0, az_0, m, 453714, dt)
+        data = runge_kutta(x_0, y_0, z_0, vx_0, vy_0, vz_0, ax_0, ay_0, az_0, m, 125000, dt)
         x_0, y_0, z_0 = data['x_0'], data['y_0'], data['z_0']
         vx_0, vy_0, vz_0 = data['vx_0'], data['vy_0'], data['vz_0']
         ax_0, ay_0, az_0 = data['ax_0'], data['ay_0'], data['az_0']
@@ -158,15 +159,15 @@ def get_speeds_from_stage_0_to_stage_3(dt):
         times.append(round(t, 1))
         speeds.append(data['speed'])
         acceleration.append(sqrt(ax_0 ** 2 + ay_0 ** 2 + az_0 ** 2))
-        dist = sqrt((x_0 - 6378000)**2 + y_0**2 + z_0**2)
-        distance.append(dist / 1000)
+        dist = sqrt((x_0 - 600000)**2 + y_0**2 + z_0**2)
+        distance.append(dist)
 
-    for t in count(467 + dt, dt):
-        if t > 911:
+    for t in count(185 + dt, dt):
+        if t > 451:
             break
 
         m = get_curr_mass(round(t, 1))
-        data = runge_kutta(x_0, y_0, z_0, vx_0, vy_0, vz_0, ax_0, ay_0, az_0, m, 131222, dt)
+        data = runge_kutta(x_0, y_0, z_0, vx_0, vy_0, vz_0, ax_0, ay_0, az_0, m, 48750, dt)
         x_0, y_0, z_0 = data['x_0'], data['y_0'], data['z_0']
         vx_0, vy_0, vz_0 = data['vx_0'], data['vy_0'], data['vz_0']
         ax_0, ay_0, az_0 = data['ax_0'], data['ay_0'], data['az_0']
@@ -174,36 +175,39 @@ def get_speeds_from_stage_0_to_stage_3(dt):
         times.append(round(t, 1))
         speeds.append(data['speed'])
         acceleration.append(sqrt(ax_0 ** 2 + ay_0 ** 2 + az_0 ** 2))
-        dist = sqrt((x_0 - 6378000)**2 + y_0 ** 2 + z_0**2)
-        distance.append(dist / 1000)
+        dist = sqrt((x_0 - 600000)**2 + y_0 ** 2 + z_0**2)
+        distance.append(dist)
 
     return times, speeds, acceleration, distance
 
 
 def get_v4(v3):
-    v4 = sqrt((86 * (v3)**2 / 2 - 6.67 * 10**-11 * 86 * 5.97 * 10**24 / 6378000 + 6.67 * 10**-11 * 86 * 5.97 * 10**24 /
-          928 / 10**6) * 2 / 86)
+    v4 = sqrt((960 * v3**2 / 2 + 6.67 * 10**-11 * 960 * 5.291 * 10**22 / 600000 - 6.67 * 10**-11 * 960 * 5.291 * 10**22 /
+          84159286) * 2 / 86)
     return v4
 
 def get_v5(v4):
-    v5 = sqrt((-6.67 * 10**-11 * 86 * 1.99 * 10**30 / 152.1 / 10**9 + 86 * v4**2 / 2 + 6.67 * 10**-11 * 86 * 1.99 * 10**30 /
-          778.5 / 10**9) * 2 / 86)
+    v5 = sqrt((6.67 * 10**-11 * 960 * 1.756 * 10**28 / 13599840256 + 960 * v4**2 / 2 - 6.67 * 10**-11 * 960 * 1.756 * 10**28 /
+          68773560320) * 2 / 86)
     return v5
 
 
 def get_v6(v5):
-    v6 = 2 * (sqrt(13000**2 - cos(67.17)**2 + 13000**2 - v5**2) - 13000 * cos(67.17)) * sin((67.17 + 21.83) / 2) + v5
+    v_in = sqrt(v5**2 + 4134**2 - 2 * v5 * 4134 * cos(60.1))
+    v6 = sqrt(4134**2 + v_in**2 - 2 * v_in * 4134 * cos(110))
     return v6
 
 
-def get_v7(v6):
-    v7 = sqrt((86 * v6**2 / 2 - 6.67 * 10**-11 * 86 * 1.99 * 10**30 / 778.5 / 10**9 + 6.67 * 10**-11 * 86 * 1.99 * 10**30 /
-          1430.39 / 10**9) * 2 / 86)
-    return v7
-
-
-def get_v8(v7):
-    v8 = (2 * (sqrt(9690**2 * cos(64.5)**2 * cos(107.8)**2 + 9690**2 * cos(64.5)**2 - v7**2) - 9690 * cos(64.5) * cos(107.8)) *
-          sin((107.8 + 18.7) / 2) + v7)
-    return v8
+def compare_speeds():
+    with open('flight_data.json') as f:
+        data = json.load(f)
+    res = get_speeds_from_stage_0_to_stage_3(0.1)
+    speed = res[1][-1]
+    v4 = get_v4(speed + 9285)
+    v5 = get_v5(v4 + 230000)
+    v6 = get_v6(v5)
+    print(f'{"По модели"}     {"По KSP"}')
+    print(f'{v4:.3f}     {data["4"]:.3f}')
+    print(f'{v5:.3f}    {data["5"]:.3f}')
+    print(f'{v6:.3f}    {data["6"]:.3f}')
 
