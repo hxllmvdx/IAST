@@ -105,8 +105,8 @@ def get_statistics(conn, vessel):
     reached_jool = False
     stage = 0
     last_mass = vessel.dry_mass
-    srf_frame = vessel.orbit.body.reference_frame
-    sun_frame = conn.space_center.bodies['Sun'].non_rotating_reference_frame
+    srf_frame = conn.space_center.bodies['Kerbin'].reference_frame
+    sun_frame = conn.space_center.bodies['Sun'].reference_frame
     left_kerbin_orbit = False
     activated_3rd_stage = False
 
@@ -115,7 +115,7 @@ def get_statistics(conn, vessel):
             time_from_launch = conn.space_center.ut - start_time
         elif stage == 3 and not activated_3rd_stage and vessel.control.throttle == 1:
             activated_3rd_stage = True
-            sleep_time = conn.space_center.ut - time_from_launch
+            sleep_time = conn.space_center.ut - time_from_launch - start_time
         if stage == 3 and activated_3rd_stage:
             time_from_launch = conn.space_center.ut - start_time - sleep_time
 
@@ -125,8 +125,7 @@ def get_statistics(conn, vessel):
         if vessel.orbit.body.name == 'Sun' and not left_kerbin_orbit:
             stage += 1
             left_kerbin_orbit = True
-        if vessel.orbit.body.name == 'Jool':
-            #srf_frame = vessel.orbit.body.orbital_reference_frame
+        if vessel.orbit.body.name == 'Jool' and not reached_jool:
             stage += 1
             reached_jool = True
         if reached_jool and vessel.orbit.body.name == 'Sun':
@@ -135,12 +134,14 @@ def get_statistics(conn, vessel):
 
         if stage in [0, 1, 2, 3]:
             if vessel.control.throttle == 1:
-                data[stage] = data.get(stage, {})
-                data[stage][time_from_launch] = vessel.flight(srf_frame).speed
-                print(stage, time_from_launch, vessel.flight(srf_frame).speed)
+                data['stage_1to3'] = data.get('stage_1to3', {})
+                data['stage_1to3']['time'] = data['stage_1to3'].get('time', []) + [time_from_launch]
+                data['stage_1to3']['speed'] = data['stage_1to3'].get('speed', []) + [vessel.flight(srf_frame).speed]
+                data['stage_1to3']['alt'] = data['stage_1to3'].get('alt', []) + [vessel.flight().surface_altitude]
+                print(stage, time_from_launch, vessel.flight(srf_frame).speed, vessel.flight().surface_altitude)
         elif stage == 4 and 4 not in data.keys():
-            data[stage] = vessel.flight(sun_frame).speed
-            print(stage, vessel.flight(sun_frame).speed)
+            data[stage] = vessel.flight(srf_frame).speed
+            print(stage, vessel.flight(srf_frame).speed)
         elif stage == 5 and 5 not in data.keys():
             data[stage] = vessel.flight(sun_frame).speed
             print(stage, vessel.flight(sun_frame).speed)
