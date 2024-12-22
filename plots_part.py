@@ -20,7 +20,7 @@ def draw_speed_plots(x1, y1, x2, y2):
 def draw_altitude_plots(x1, y1, x2, y2):
     plt.plot(x1, y1, x2, y2)
     plt.xlabel('Time in seconds')
-    plt.ylabel('Altitude in meters')
+    plt.ylabel('Altitude in m')
     plt.title('Altitude graphs')
     plt.show()
 
